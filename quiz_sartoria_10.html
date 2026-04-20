@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Quiz — La Sartoria Napoletana</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: #0D1A14;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1rem;
+      background-image: radial-gradient(ellipse at 20% 20%, #162A1E 0%, transparent 60%),
+                        radial-gradient(ellipse at 80% 80%, #0A1510 0%, transparent 60%);
+    }
+    .card {
+      background: #FDF8F2;
+      border-radius: 4px;
+      box-shadow: 0 0 0 1px #8AAE96, 0 8px 60px rgba(0,0,0,0.5);
+      padding: 2.25rem 2.25rem 2.75rem;
+      max-width: 600px;
+      width: 100%;
+      position: relative;
+    }
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 6px; left: 6px; right: -6px; bottom: -6px;
+      border: 1px solid rgba(138,174,150,0.3);
+      border-radius: 4px;
+      pointer-events: none;
+      z-index: -1;
+    }
+    .logo {
+      font-family: 'Playfair Display', serif;
+      font-size: 13px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: #3A6B4A;
+      margin-bottom: 1.75rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .logo::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: linear-gradient(to right, #8AAE96, transparent);
+    }
+    .bar-row { display: flex; align-items: center; gap: 10px; margin-bottom: 1.5rem; }
+    .bar-bg { flex: 1; height: 3px; background: #EDE5D8; }
+    .bar-fill { height: 3px; background: linear-gradient(to right, #1B5E35, #8AAE96); transition: width 0.5s cubic-bezier(.4,0,.2,1); }
+    .counter { font-size: 12px; color: #607860; white-space: nowrap; letter-spacing: 1px; font-weight: 600; }
+    .tag {
+      display: inline-block; font-size: 10px; font-weight: 600; padding: 3px 11px;
+      border-radius: 2px; background: #1B5E35; color: #C8E6C9; margin-bottom: 1.1rem;
+      text-transform: uppercase; letter-spacing: 1.5px;
+    }
+    .q-text {
+      font-family: 'Playfair Display', serif;
+      font-size: 20px;
+      font-weight: 700;
+      color: #1C0E06;
+      line-height: 1.5;
+      margin-bottom: 6px;
+    }
+    .q-text.is-quote {
+      font-style: italic;
+      font-size: 22px;
+      border-left: 3px solid #1B5E35;
+      padding-left: 14px;
+    }
+    .q-sub { font-size: 13px; color: #4A6A50; margin-top: 8px; font-weight: 500; }
+    .img-frame {
+      margin: 1.1rem 0 0.5rem;
+      border-radius: 3px;
+      overflow: hidden;
+      border: 1px solid #8AAE96;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+      max-height: 260px;
+    }
+    .img-frame img { width: 100%; height: 260px; object-fit: cover; display: block; }
+    .options { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 1.25rem; margin-bottom: 1.25rem; }
+    @media (max-width: 480px) { .options { grid-template-columns: 1fr; } }
+    .opt {
+      background: #fff;
+      border: 1.5px solid #DDD4C5;
+      border-radius: 3px;
+      padding: 12px 14px;
+      font-size: 14px;
+      font-family: 'DM Sans', sans-serif;
+      color: #2C1A0E;
+      cursor: pointer;
+      text-align: left;
+      line-height: 1.4;
+      transition: background 0.1s, border-color 0.1s, transform 0.1s;
+      font-weight: 500;
+    }
+    .opt:hover:not(:disabled) { background: #F0F7F2; border-color: #1B5E35; transform: translateY(-1px); }
+    .opt.correct { background: #EAF4DE; border-color: #3B6D11; color: #204A08; font-weight: 600; }
+    .opt.wrong { background: #FBE8E8; border-color: #8B1A1A; color: #5C0E0E; }
+    .opt:disabled { cursor: default; transform: none; }
+    .fb-box {
+      border-radius: 3px;
+      padding: 13px 16px;
+      font-size: 14px;
+      line-height: 1.65;
+      display: none;
+      margin-bottom: 1.25rem;
+      border-left: 3px solid;
+    }
+    .fb-box.show { display: block; }
+    .fb-box.ok { background: #EAF4DE; color: #204A08; border-color: #3B6D11; }
+    .fb-box.ko { background: #FBE8E8; color: #5C0E0E; border-color: #8B1A1A; }
+    .next-btn {
+      background: #1B5E35;
+      color: #C8E6C9;
+      border: none;
+      border-radius: 3px;
+      padding: 11px 28px;
+      font-size: 14px;
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      cursor: pointer;
+      display: none;
+      transition: background 0.15s;
+    }
+    .next-btn.show { display: inline-block; }
+    .next-btn:hover { background: #134428; }
+    .end { text-align: center; padding: 1.5rem 0; display: none; }
+    .end.show { display: block; }
+    .end-scissor { font-size: 48px; margin-bottom: 0.5rem; }
+    .end-score { font-family: 'Playfair Display', serif; font-size: 56px; font-weight: 700; color: #1B5E35; line-height: 1; }
+    .end-denom { font-size: 20px; color: #8AAE96; font-weight: 600; margin-bottom: 0.25rem; }
+    .end-label { font-size: 13px; color: #888; margin-bottom: 1.25rem; letter-spacing: 0.5px; }
+    .end-msg { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 700; color: #1C0E06; margin-bottom: 0.5rem; }
+    .end-sub { font-size: 14px; color: #4A5040; line-height: 1.65; margin-bottom: 2rem; max-width: 380px; margin-left: auto; margin-right: auto; }
+    .again {
+      background: #1B5E35; color: #C8E6C9; border: none; border-radius: 3px;
+      padding: 11px 28px; font-size: 14px; font-family: 'DM Sans', sans-serif;
+      font-weight: 600; letter-spacing: 0.5px; cursor: pointer; transition: background 0.15s;
+    }
+    .again:hover { background: #134428; }
+  </style>
+</head>
+<body>
+<div class="card">
+  <div class="logo">Sartoria Napoletana — Quiz</div>
+  <div id="quiz">
+    <div class="bar-row">
+      <div class="bar-bg"><div class="bar-fill" id="bar" style="width:0%"></div></div>
+      <div class="counter" id="counter">1 / 10</div>
+    </div>
+    <div class="tag" id="category"></div>
+    <div id="q-wrap"></div>
+    <div class="options" id="opts"></div>
+    <div class="fb-box" id="fb"></div>
+    <button class="next-btn" id="nxt">Avanti →</button>
+  </div>
+  <div class="end" id="end">
+    <div class="end-scissor">✂️</div>
+    <div class="end-score" id="end-score"></div>
+    <div class="end-denom">/ 10</div>
+    <div class="end-label">risposte giuste</div>
+    <div class="end-msg" id="end-msg"></div>
+    <div class="end-sub" id="end-sub"></div>
+    <button class="again" onclick="init()">Riprova!</button>
+  </div>
+</div>
+
+<script>
+const qs = [
+  {
+    cat: "Storia della sartoria",
+    q: "In quale chiesa nacque, nel Medioevo, la prima Confraternita dei Sartori napoletani?",
+    opts: ["Chiesa di San Domenico Maggiore", "Chiesa di Sant'Eligio a Mercato", "Basilica di Santa Chiara", "Chiesa del Gesù Nuovo"],
+    c: 1,
+    fb: "La Confraternita dei Sartori nacque nel Medioevo nella chiesa di Sant'Eligio a Mercato — uno dei primi esempi di corporazione artigianale organizzata del Sud Italia. Col tempo divenne una vera scuola: per entrare bisognava superare un esame."
+  },
+  {
+    cat: "Storia della sartoria",
+    q: "Nel Settecento e nell'Ottocento la sartoria napoletana perse prestigio internazionale. Qual era il motivo principale?",
+    opts: ["Una grave crisi economica aveva chiuso le botteghe", "I Borboni rifiutavano la moda francese, rendendo lo stile napoletano percepito come fuori moda", "Un incendio distrusse gli archivi della Confraternita", "I migliori sarti emigrarono a Parigi e Londra"],
+    c: 1,
+    fb: "I Borboni non vollero piegarsi alla moda francese, e così gli abiti napoletani furono percepiti come obsoleti. La rinascita arrivò nell'Ottocento grazie ai ricchi viaggiatori inglesi del Grand Tour, che scoprirono e apprezzarono lo stile partenopeo."
+  },
+  {
+    cat: "La giacca napoletana",
+    q: "La manica della giacca napoletana è cucita in modo da lasciare morbidezza nel giro spalla, senza rigidità. Come si chiama questa tecnica?",
+    opts: ["Manica a raglan", "Manica a camicia (o mappina)", "Manica a palloncino", "Manica strutturata"],
+    c: 1,
+    fb: "La 'manica a camicia' (o a mappina) lascia piccole pieghe chiamate repecchie nel punto di attacco alla spalla. Senza spalline rigide, segue la gestualità naturale di chi la indossa — un dettaglio pensato per il comfort nel caldo napoletano."
+  },
+  {
+    cat: "La giacca napoletana",
+    q: "Il taschino della giacca napoletana ha una forma obliqua e caratteristica. Come viene chiamato?",
+    opts: ["Taschino a toppa", "Taschino a lancia", "Taschino a barchetta", "Taschino a pignatiello"],
+    c: 2,
+    fb: "Il 'taschino a barchetta' non è dritto come quello inglese ma tagliato con una forma che richiama una piccola barca — un omaggio all'amore dei napoletani per il mare."
+  },
+  {
+    cat: "La giacca napoletana",
+    q: "Qual è una delle caratteristiche più distintive della fodera interna della giacca napoletana?",
+    opts: ["È sempre doppia e in seta pesante", "Può essere lasciata in parte aperta o totalmente assente", "È sempre di colore rosso acceso", "Viene cucita esternamente a vista"],
+    c: 1,
+    fb: "Tipica della giacca napoletana è la fodera interna lasciata in parte aperta oppure totalmente assente — in quel caso la giacca diventa 'sfoderata' ed è di più difficile lavorazione. Questa scelta garantisce leggerezza e freschezza, perfetta per il clima caldo e asciutto di Napoli."
+  },
+  {
+    cat: "I grandi nomi",
+    q: "Tra le grandi case sartoriali affermatesi nel Novecento, quale di queste NON è napoletana?",
+    opts: ["Kiton", "Isaia", "Attolini", "Brioni"],
+    c: 3,
+    fb: "Brioni è una maison romana, fondata a Roma nel 1945. Kiton, Isaia e Attolini sono invece autentiche eccellenze napoletane, eredi di una tradizione sartoriale che ha portato lo stile partenopeo in tutto il mondo."
+  },
+  {
+    cat: "I grandi nomi",
+    q: "La manifattura Attolini è presente nell'immaginario cinematografico grazie alla partecipazione a un celebre film italiano. Quale?",
+    opts: ["Il Gattopardo", "Gomorra", "La grande bellezza", "Paisà"],
+    c: 2,
+    fb: "Con la partecipazione a 'La grande bellezza' di Paolo Sorrentino (2013), Attolini ha contribuito a imprimere anche nel cinema la filosofia dell'eleganza partenopea — una sartoria che va da Vincenzo, grande sarto di inizio Novecento, fino alla terza generazione attuale."
+  },
+  {
+    cat: "Gli accessori napoletani",
+    q: "La cravatta ISAIA ha una tecnica di cucitura unica. Qual è la sua caratteristica distintiva?",
+    opts: ["È cucita con filo d'oro per aumentarne il peso", "È cucita con un unico filo (rosso), così da poterla stirare facilmente", "È sempre intrecciata a mano con tre strati di seta", "Non viene mai cucita: è tenuta insieme da un sistema a pressione"],
+    c: 1,
+    fb: "La cravatta ISAIA viene cucita con un unico filo rosso — una tecnica che permette al cliente di stirarla facilmente senza rischiare di deformarla. Come la camicia, anche la cravatta è entrata nella collezione ISAIA prima affidata a fornitori esterni, poi gradualmente internalizzata."
+  },
+  {
+    cat: "Gli accessori napoletani",
+    q: "Quale storica bottega napoletana, famosa per i propri ombrelli artigianali realizzati con sete di San Leucio e manici in corno o bambù, ha clienti illustri tra cui papi e principi?",
+    opts: ["Portolano", "Tramontano", "Talarico", "Marinella"],
+    c: 2,
+    fb: "Talarico porta avanti un'attività avviata nel 1860 da Giovanni Bongiovanni con un negozio chiamato 'Al Giapponese'. Ogni ombrello è un pezzo unico, realizzato con materiali pregiati come sete di San Leucio e manici in corno, bambù o limone di Sorrento."
+  },
+  {
+    cat: "Gli accessori napoletani",
+    q: "Quale azienda napoletana di pelletteria, fondata nel 1865 e con un iconico logo con tritoni e sirene creato nel 1976, è tra le più storiche nel settore delle borse?",
+    opts: ["Portolano", "Tramontano", "Cilento", "Rubinacci"],
+    c: 1,
+    fb: "Tramontano è attiva dal 1865 e produce borse di alta qualità per una clientela internazionale. Il suo logo con tritoni e sirene, creato nel 1976, è diventato un simbolo riconoscibile dell'artigianato napoletano nel mondo della pelletteria di lusso."
+  }
+];
+
+const TOTAL = qs.length;
+let cur = 0, score = 0, done = false, order = [];
+
+function shuffle(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+function init() {
+  cur = 0; score = 0; done = false;
+  order = shuffle([...Array(TOTAL).keys()]);
+  document.getElementById('quiz').style.display = 'block';
+  document.getElementById('end').className = 'end';
+  load();
+}
+
+function load() {
+  const q = qs[order[cur]];
+  document.getElementById('counter').textContent = `${cur + 1} / ${TOTAL}`;
+  document.getElementById('bar').style.width = `${(cur / TOTAL) * 100}%`;
+  document.getElementById('category').textContent = q.cat;
+  const wrap = document.getElementById('q-wrap');
+  let html = '';
+  if (q.quote) {
+    html = `<div class="q-text is-quote">${q.q}</div>${q.sub ? `<div class="q-sub">${q.sub}</div>` : ''}`;
+  } else {
+    html = `<div class="q-text">${q.q}</div>`;
+  }
+  if (q.img) {
+    html += `<div class="img-frame"><img src="${q.img}" alt="immagine" /></div>`;
+  }
+  wrap.innerHTML = html;
+
+  const container = document.getElementById('opts');
+  container.innerHTML = '';
+  shuffle([0,1,2,3]).forEach(i => {
+    const btn = document.createElement('button');
+    btn.className = 'opt';
+    btn.textContent = q.opts[i];
+    btn.dataset.idx = i;
+    btn.onclick = () => pick(i, btn);
+    container.appendChild(btn);
+  });
+  document.getElementById('fb').className = 'fb-box';
+  document.getElementById('fb').innerHTML = '';
+  document.getElementById('nxt').className = 'next-btn';
+  done = false;
+}
+
+function pick(idx, btn) {
+  if (done) return;
+  done = true;
+  const q = qs[order[cur]];
+  document.querySelectorAll('.opt').forEach(b => b.disabled = true);
+  const fb = document.getElementById('fb');
+  if (idx === q.c) {
+    score++;
+    btn.classList.add('correct');
+    fb.className = 'fb-box ok show';
+    fb.innerHTML = '<strong>Esatto!</strong> ' + q.fb;
+  } else {
+    btn.classList.add('wrong');
+    document.querySelectorAll('.opt').forEach(b => { if (parseInt(b.dataset.idx) === q.c) b.classList.add('correct'); });
+    fb.className = 'fb-box ko show';
+    fb.innerHTML = '<strong>Non proprio...</strong> ' + q.fb;
+  }
+  const nxt = document.getElementById('nxt');
+  nxt.className = 'next-btn show';
+  nxt.textContent = cur < TOTAL - 1 ? 'Avanti →' : 'Risultato →';
+}
+
+document.getElementById('nxt').onclick = () => {
+  cur++; done = false;
+  if (cur < TOTAL) { load(); } else { showEnd(); }
+};
+
+function showEnd() {
+  document.getElementById('quiz').style.display = 'none';
+  document.getElementById('end').className = 'end show';
+  document.getElementById('end-score').textContent = score;
+  const p = score / TOTAL;
+  let msg, sub;
+  if (p >= 0.9)      { msg = "Maestro sartore!"; sub = "Conosci la sartoria napoletana come un artigiano del quartiere Chiaia. Chapeau!"; }
+  else if (p >= 0.7) { msg = "Ottimo occhio!"; sub = "Hai una buona conoscenza dello stile partenopeo. Con un po' di pratica diventi un vero esperto."; }
+  else if (p >= 0.5) { msg = "Ci sei quasi!"; sub = "Buona base. Ripassati qualche dettaglio e riprova!"; }
+  else               { msg = "L'arte ti aspetta!"; sub = "La sartoria napoletana ha molto da raccontare — rileggi e riprova."; }
+  document.getElementById('end-msg').textContent = msg;
+  document.getElementById('end-sub').textContent = sub;
+}
+
+init();
+</script>
+</body>
+</html>
